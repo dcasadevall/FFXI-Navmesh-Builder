@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31515.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFXI-Navmesh-Builder-Forms", "FFXI-Navmesh-Builder-Forms.csproj", "{A94CB3C0-59A2-4331-B721-EDCA0B21DE38}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A94CB3C0-59A2-4331-B721-EDCA0B21DE38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A94CB3C0-59A2-4331-B721-EDCA0B21DE38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A94CB3C0-59A2-4331-B721-EDCA0B21DE38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A94CB3C0-59A2-4331-B721-EDCA0B21DE38}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C3EE38C2-0497-49B3-9893-95197F009AFD}
+	EndGlobalSection
+EndGlobal
