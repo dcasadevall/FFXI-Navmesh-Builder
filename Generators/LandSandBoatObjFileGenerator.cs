@@ -39,37 +39,42 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
 
     public async Task GenerateObjFiles(CancellationToken cancellationToken) {
       var cancellationTokenSource = new CancellationTokenSource();
-      if (dat.Dms._zones.Count > 0) {
-        var stopWatch = new Stopwatch();
-        stopWatch.Start();
-        foreach (var zone in dat.Dms._zones) {
-          var zoneDat =
-            await DumpZoneDat(zone.Id, zone.Name, zone.Path, cancellationTokenSource.Token);
+      if (dat.Dms._zones.Count == 0) {
+        dat.ParseDat(55465);
+      }
 
-          if (useTopazZoneNames) {
-            var zoneName = TopazNames.zoneNames.FirstOrDefault(x => x.Key == zone.Id).Value;
-            if (zoneName != null) {
-              zoneDat.Mzb.WriteObj(zoneName);
-            } else {
-              logger.Log($"Topaz Name not found for zone: {zone.Name}");
-            }
+      if (dat.Dms._zones.Count == 0) {
+        logger.Log("Failed to load zones from dat. Is FFXI Path correct?");
+        return;
+      }
+
+      var stopWatch = new Stopwatch();
+      stopWatch.Start();
+      foreach (var zone in dat.Dms._zones) {
+        var zoneDat =
+          await DumpZoneDat(zone.Id, zone.Name, zone.Path, cancellationTokenSource.Token);
+
+        if (useTopazZoneNames) {
+          var zoneName = TopazNames.zoneNames.FirstOrDefault(x => x.Key == zone.Id).Value;
+          if (zoneName != null) {
+            zoneDat.Mzb.WriteObj(zoneName);
           } else {
-            switch (useIdNames) {
-              case true when zoneDat.Mzb.WriteObj(zone.Id.ToString()):
-              case false when zoneDat.Mzb.WriteObj(zone.Name):
-                continue;
-            }
+            logger.Log($"Topaz Name not found for zone: {zone.Name}");
+          }
+        } else {
+          switch (useIdNames) {
+            case true when zoneDat.Mzb.WriteObj(zone.Id.ToString()):
+            case false when zoneDat.Mzb.WriteObj(zone.Name):
+              continue;
           }
         }
-
-        stopWatch.Stop();
-        var ts = stopWatch.Elapsed;
-        var elapsedTime =
-          $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
-        logger.Log($@"Time taken to dump all collision obj files {elapsedTime}");
-      } else {
-        logger.Log("Please click Load Zones, before you try and build obj files!.");
       }
+
+      stopWatch.Stop();
+      var ts = stopWatch.Elapsed;
+      var elapsedTime =
+        $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
+      logger.Log($@"Time taken to dump all collision obj files {elapsedTime}");
     }
     
     /// <summary>

@@ -34,9 +34,10 @@ namespace FFXI_Navmesh_Builder_Forms {
       // 
       this.BuildAllButton.Location = new System.Drawing.Point(12, 132);
       this.BuildAllButton.Name = "BuildAllButton";
-      this.BuildAllButton.Size = new System.Drawing.Size(75, 23);
+      this.BuildAllButton.Size = new System.Drawing.Size(132, 23);
       this.BuildAllButton.TabIndex = 0;
-      this.BuildAllButton.Text = "Build All";
+      this.BuildAllButton.Text = "2: Generate NavMeshes";
+      this.BuildAllButton.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
       this.BuildAllButton.UseVisualStyleBackColor = true;
       this.BuildAllButton.Click += new System.EventHandler(this.BuildAllButton_Click);
       // 
@@ -58,11 +59,12 @@ namespace FFXI_Navmesh_Builder_Forms {
       // 
       // DumpObjButton
       // 
-      this.DumpObjButton.Location = new System.Drawing.Point(12, 9);
+      this.DumpObjButton.Location = new System.Drawing.Point(12, 103);
       this.DumpObjButton.Name = "DumpObjButton";
-      this.DumpObjButton.Size = new System.Drawing.Size(75, 23);
+      this.DumpObjButton.Size = new System.Drawing.Size(132, 23);
       this.DumpObjButton.TabIndex = 3;
-      this.DumpObjButton.Text = "Create OBJs";
+      this.DumpObjButton.Text = "1: Generate OBJs";
+      this.DumpObjButton.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
       this.DumpObjButton.UseVisualStyleBackColor = true;
       this.DumpObjButton.Click += new System.EventHandler(this.DumpObjButton_Click);
       // 
