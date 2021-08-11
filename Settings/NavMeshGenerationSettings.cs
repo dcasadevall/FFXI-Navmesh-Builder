@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FFXI_Navmesh_Builder_Forms.Settings {
-  class NavMeshGenerationSettings {
+  public class NavMeshGenerationSettings {
     // Cell and Tiles
     // public int tileSize = 256;
     public int tileSize = 64;

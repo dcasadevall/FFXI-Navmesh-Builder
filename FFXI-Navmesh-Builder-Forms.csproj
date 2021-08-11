@@ -33,8 +33,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,6 +52,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generators\INavMeshGenerator.cs" />
+    <Compile Include="Generators\IObjFileGenerator.cs" />
+    <Compile Include="Generators\LandSandBoatObjFileGenerator.cs" />
+    <Compile Include="Generators\LandSandBoatNavMeshGenerator.cs" />
+    <Compile Include="lib\dat\dat.cs" />
+    <Compile Include="lib\dat\datChunk.cs" />
+    <Compile Include="lib\dat\KeyTables.cs" />
+    <Compile Include="lib\dat\Normal.cs" />
+    <Compile Include="lib\dat\ParseZoneModelDat.cs" />
+    <Compile Include="lib\dat\RomPath.cs" />
+    <Compile Include="lib\dat\subRegion.cs" />
+    <Compile Include="lib\dat\Triangle.cs" />
+    <Compile Include="lib\dat\Types\Bbt.cs" />
+    <Compile Include="lib\dat\Types\DatTypes.cs" />
+    <Compile Include="lib\dat\Types\d_ms.cs" />
+    <Compile Include="lib\dat\Types\Entity.cs" />
+    <Compile Include="lib\dat\Types\MMB.cs" />
+    <Compile Include="lib\dat\Types\MZB.cs" />
+    <Compile Include="lib\dat\Types\ResourceType.cs" />
+    <Compile Include="lib\dat\Types\RID.cs" />
+    <Compile Include="lib\dat\Vertex.cs" />
+    <Compile Include="lib\dat\Zone.cs" />
+    <Compile Include="lib\TopazNames.cs" />
+    <Compile Include="Logging\ILogger.cs" />
+    <Compile Include="Logging\SystemConsoleLogger.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -69,6 +100,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -86,6 +118,7 @@
     <Content Include="FFXINAV.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
