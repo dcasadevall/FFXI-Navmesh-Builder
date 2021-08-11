@@ -22,7 +22,8 @@ namespace FFXI_Navmesh_Builder_Forms {
       Application.SetCompatibleTextRenderingDefault(false);
       
       // This is essentially our root of composition
-      var ffxiPath = ""; // fill this
+      // Path should be customizable, along with Settings
+      var ffxiPath = "C:/Program Files (x86)/PlayOnline/SquareEnix/FINAL FANTASY XI/";
       var ffxiNav = new Ffxinav();
       var logger = new SystemConsoleLogger();
       
