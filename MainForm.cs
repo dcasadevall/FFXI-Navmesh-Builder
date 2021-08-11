@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Windows.Forms;
 using FFXI_Navmesh_Builder_Forms.Generators;
 using FFXI_Navmesh_Builder_Forms.Logging;
@@ -31,7 +32,7 @@ namespace FFXI_Navmesh_Builder_Forms {
 
     private async void DumpObjButton_Click(object sender, EventArgs e) {
       BuildAllButton.Enabled = false;
-      await objFileGenerator.GenerateObjFiles();
+      await objFileGenerator.GenerateObjFiles(CancellationToken.None);
       BuildAllButton.Enabled = true;
     }
   }

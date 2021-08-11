@@ -37,11 +37,41 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
       this.useIdNames = useIdNames;
     }
 
-    public Task GenerateObjFiles() {
-      throw new NotImplementedException();
+    public async Task GenerateObjFiles(CancellationToken cancellationToken) {
+      var cancellationTokenSource = new CancellationTokenSource();
+      if (dat.Dms._zones.Count > 0) {
+        var stopWatch = new Stopwatch();
+        stopWatch.Start();
+        foreach (var zone in dat.Dms._zones) {
+          var zoneDat =
+            await DumpZoneDat(zone.Id, zone.Name, zone.Path, cancellationTokenSource.Token);
+
+          if (useTopazZoneNames) {
+            var zoneName = TopazNames.zoneNames.FirstOrDefault(x => x.Key == zone.Id).Value;
+            if (zoneName != null) {
+              zoneDat.Mzb.WriteObj(zoneName);
+            } else {
+              logger.Log($"Topaz Name not found for zone: {zone.Name}");
+            }
+          } else {
+            switch (useIdNames) {
+              case true when zoneDat.Mzb.WriteObj(zone.Id.ToString()):
+              case false when zoneDat.Mzb.WriteObj(zone.Name):
+                continue;
+            }
+          }
+        }
+
+        stopWatch.Stop();
+        var ts = stopWatch.Elapsed;
+        var elapsedTime =
+          $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
+        logger.Log($@"Time taken to dump all collision obj files {elapsedTime}");
+      } else {
+        logger.Log("Please click Load Zones, before you try and build obj files!.");
+      }
     }
-
-
+    
     /// <summary>
     /// Dumps the zone dat.
     /// </summary>
@@ -102,56 +132,6 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
       }
 
       return await Task.Run(Function, cancellationToken);
-    }
-
-
-    /// <summary>
-    /// dump all object files as an asynchronous operation.
-    /// </summary>
-    /// <param name="run">if set to <c>true</c> [run].</param>
-    private async Task DumpAllObjFilesAsync(bool run) {
-      var cancellationTokenSource = new CancellationTokenSource();
-      switch (run) {
-        case true: {
-          if (dat.Dms._zones.Count > 0) {
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
-            foreach (var zone in dat.Dms._zones) {
-              var zoneDat =
-                await DumpZoneDat(zone.Id, zone.Name, zone.Path, cancellationTokenSource.Token);
-
-              if (useTopazZoneNames) {
-                var zoneName = TopazNames.zoneNames.FirstOrDefault(x => x.Key == zone.Id).Value;
-                if (zoneName != null) {
-                  zoneDat.Mzb.WriteObj(zoneName);
-                } else {
-                  logger.Log($"Topaz Name not found for zone: {zone.Name}");
-                }
-              } else {
-                switch (useIdNames) {
-                  case true when zoneDat.Mzb.WriteObj(zone.Id.ToString()):
-                  case false when zoneDat.Mzb.WriteObj(zone.Name):
-                    continue;
-                }
-              }
-            }
-
-            stopWatch.Stop();
-            var ts = stopWatch.Elapsed;
-            var elapsedTime =
-              $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
-            logger.Log($@"Time taken to dump all collision obj files {elapsedTime}");
-          } else {
-            logger.Log("Please click Load Zones, before you try and build obj files!.");
-          }
-
-          break;
-        }
-        case false: {
-          cancellationTokenSource.Cancel();
-          break;
-        }
-      }
     }
   }
 }
