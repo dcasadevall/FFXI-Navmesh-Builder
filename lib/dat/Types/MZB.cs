@@ -59,6 +59,11 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
     /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
     public bool WriteObj(string fileName) {
       var path = $@"{Directory.GetCurrentDirectory()}\Map Collision obj files\{fileName}.obj";
+      if (File.Exists(path)) {
+        logger.Log($"Not overwriting {fileName}");
+        return false;
+      }
+      
       try {
         using (var sw = new StreamWriter(path)) {
           foreach (var v in _allVertices) {
