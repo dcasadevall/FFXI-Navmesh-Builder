@@ -53,6 +53,9 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
     public async Task GenerateNavMeshes() {
       var path = $@"{ Directory.GetCurrentDirectory()}\Map Collision obj files";
       var dumpPath = $@"{ Directory.GetCurrentDirectory()}\Dumped NavMeshes";
+      if (!Directory.Exists(dumpPath)) {
+        Directory.CreateDirectory(dumpPath);
+      }
 
       foreach (var file in Directory.EnumerateFiles(string.Format(path, "*.obj"))) {
         var fullPath = Path.GetFileName(file);

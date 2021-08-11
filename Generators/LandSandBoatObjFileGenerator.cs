@@ -53,6 +53,10 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
       foreach (var zone in dat.Dms._zones) {
         var zoneDat =
           await DumpZoneDat(zone.Id, zone.Name, zone.Path, cancellationTokenSource.Token);
+        if (zoneDat == null) {
+          logger.Log($"Error parsing: {zone.Name}");
+          continue;
+        }
 
         if (useTopazZoneNames) {
           var zoneName = TopazNames.zoneNames.FirstOrDefault(x => x.Key == zone.Id).Value;

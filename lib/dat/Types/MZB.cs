@@ -19,6 +19,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using FFXI_Navmesh_Builder_Forms.Logging;
 
 namespace Ffxi_Navmesh_Builder.Common.dat.Types {
@@ -48,6 +49,12 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
     /// </summary>
     private readonly Dictionary<int, uint> _vismapid = new Dictionary<int, uint>();
 
+    private static string BaseDir {
+      get {
+        return $@"{Directory.GetCurrentDirectory()}\Map Collision obj files";
+      }
+    }
+
     public Mzb(ILogger logger) {
       this.logger = logger;
     }
@@ -58,7 +65,11 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
     /// <param name="fileName">Name of the file.</param>
     /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
     public bool WriteObj(string fileName) {
-      var path = $@"{Directory.GetCurrentDirectory()}\Map Collision obj files\{fileName}.obj";
+      if (!Directory.Exists(BaseDir)) {
+        Directory.CreateDirectory(BaseDir);
+      }
+
+      var path = $@"{BaseDir}\{fileName}.obj";
       if (File.Exists(path)) {
         logger.Log($"Not overwriting {fileName}");
         return false;
@@ -90,13 +101,12 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
     /// Decodes the MZB.
     /// </summary>
     /// <param name="data">The data.</param>
-    internal void DecodeMzb(byte[] data) {
+    internal void DecodeMzb(Span<byte> data) {
       try {
-        if (data[3] < 0x1B) {
+        if (data[3] < 0x1B)
           return;
-        }
 
-        var decode_length = BitConverter.ToInt32(data, 0) & 0x00FFFFFF;
+        var decode_length = MemoryMarshal.Read<int>(data[..]) & 0x00FFFFFF;
 
         var key = (int)KeyTables.KeyTable[data[7] ^ 0xFF];
         var keyCount = 0;
@@ -109,18 +119,15 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
               data[pos + i] ^= 0xFF;
             }
           }
-
           key += ++keyCount;
           pos += xorLength;
         }
 
-        var nodeCount = BitConverter.ToInt32(data, 4) & 0x00FFFFFF;
+        var nodeCount = MemoryMarshal.Read<int>(data[4..]) & 0x00FFFFFF;
 
-        for (var i = 0; i < nodeCount; i++) {
-          for (var j = 0; j < 16; j++) {
+        for (var i = 0; i < nodeCount; i++)
+          for (var j = 0; j < 16; j++)
             data[0x20 + i * 0x64 + j] ^= 0x55;
-          }
-        }
       } catch (Exception ex) {
         logger.Log($"{ex}");
       }
@@ -130,37 +137,30 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
     /// Parses the MZB.
     /// </summary>
     /// <param name="block">The block.</param>
-    internal void ParseMzb(byte[] block) {
+    internal void ParseMzb(Span<byte> block) {
       try {
         int meshoffset;
         var mOffset = 8;
-
         //I added this to help with ships.
         while (true) {
-          meshoffset = BitConverter.ToInt32(block, mOffset);
-          if (meshoffset == 0) {
+          meshoffset = MemoryMarshal.Read<int>(block[mOffset..]);
+          if (meshoffset == 0)
             mOffset += 4;
-          }
-
-          if (meshoffset != 0) {
+          if (meshoffset != 0)
             break;
-          }
         }
-
-        if (meshoffset <= 0 || meshoffset >= block.Length) {
+        if (meshoffset <= 0 || meshoffset >= block.Length)
           return;
-        }
-
-        var quadtreeoffset = BitConverter.ToInt32(block, 0x10);
-        var meshCount = BitConverter.ToInt32(block, meshoffset);
-        var meshData = BitConverter.ToInt32(block, meshoffset + 0x4);
+        var quadtreeoffset = MemoryMarshal.Read<int>(block[0x10..]);
+        var meshCount = MemoryMarshal.Read<int>(block[meshoffset..]);
+        var meshData = MemoryMarshal.Read<int>(block[(meshoffset + 0x4)..]);
 
         var offset = meshData;
         for (var i = 0; i < meshCount; ++i) {
           offset = ParseMesh(block, offset);
         }
 
-        var gridOffset = BitConverter.ToInt32(block, meshoffset + 0x10);
+        var gridOffset = MemoryMarshal.Read<int>(block[(meshoffset + 0x10)..]);
         if (gridOffset > 0) {
           //added *10 here to help with Port Jeuno and Chateau_dOraguille
           var gridwidth = block[0x0c] * 10;
@@ -168,63 +168,44 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
           for (var y = 0; y < gridheight * 10; ++y) {
             for (var x = 0; x < gridwidth * 10; ++x) {
               var offsets = (y * gridwidth * 10 + x) * 4;
-              if (offsets <= 0 || offsets >= block.Length) {
+              if (offsets <= 0 || offsets >= block.Length)
                 continue;
-              }
-
-              if (gridOffset + offsets >= block.Length) {
+              if (gridOffset + offsets >= block.Length)
                 continue;
-              }
-
-              var entryOffset = BitConverter.ToInt32(block, gridOffset + offsets);
+              var entryOffset = MemoryMarshal.Read<int>(block[(gridOffset + offsets)..]);
               if (entryOffset > 0 && entryOffset < block.Length) {
                 ParseGridEntry(block, entryOffset, x, y);
               }
             }
           }
         }
-
-        var maplistOffset = BitConverter.ToInt32(block, 0x14);
-        var maplistCount = BitConverter.ToInt32(block, 0x18);
+        var maplistOffset = MemoryMarshal.Read<int>(block[0x14..]);
+        var maplistCount = MemoryMarshal.Read<int>(block[0x18..]);
 
         for (var i = 0; i < maplistCount; ++i) {
           var pos = (maplistOffset + 0xc0 * i);
-          if (pos >= block.Length) {
+          if (pos >= block.Length)
             continue;
-          }
-
           var offsetEncoded = pos + 0x29 * 4;
-          if (offsetEncoded >= block.Length) {
+          if (offsetEncoded >= block.Length)
             continue;
-          }
-
-          var mapidEncoded = BitConverter.ToInt32(block, offsetEncoded);
-          if (pos + 0x2a * 4 >= block.Length) {
+          var mapidEncoded = MemoryMarshal.Read<int>(block[offsetEncoded..]);
+          if (pos + 0x2a * 4 >= block.Length)
             continue;
-          }
-
-          var objvisOffset = BitConverter.ToInt32(block, pos + 0x2a * 4);
-          if (pos + 0x2b * 4 >= block.Length) {
+          var objvisOffset = MemoryMarshal.Read<int>(block[(pos + 0x2a * 4)..]);
+          if (pos + 0x2b * 4 >= block.Length)
             continue;
-          }
-
-          var objvisCount = BitConverter.ToInt32(block, pos + 0x2b * 4);
-          if (pos + 0x2d * 4 >= block.Length) {
+          var objvisCount = MemoryMarshal.Read<int>(block[(pos + 0x2b * 4)..]);
+          if (pos + 0x2d * 4 >= block.Length)
             continue;
-          }
-
-          var x = BitConverter.ToSingle(block, pos + 0x2d * 4);
-          if (pos + 0x2e * 4 >= block.Length) {
+          var x = MemoryMarshal.Read<float>(block[(pos + 0x2d * 4)..]);
+          if (pos + 0x2e * 4 >= block.Length)
             continue;
-          }
-
-          var y = BitConverter.ToSingle(block, pos + 0x2e * 4);
+          var y = MemoryMarshal.Read<float>(block[(pos + 0x2e * 4)..]);
           var mapid = ((mapidEncoded >> 3) & 0x7) | (((mapidEncoded >> 26) & 0x3) << 3);
-          if (!_vismapid.ContainsKey(i)) {
+          if (!_vismapid.ContainsKey(i))
             _vismapid.Add(i, (uint)mapid);
-          }
         }
-
         var quadtree = ParseQuadTree(block, quadtreeoffset);
       } catch (Exception ex) {
         logger.Log($"{ex}");
@@ -238,28 +219,22 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
     /// <param name="entryoffs">The entryoffs.</param>
     /// <param name="x">The x.</param>
     /// <param name="y">The y.</param>
-    private void ParseGridEntry(byte[] data, int entryoffs, int x, int y) {
+    private void ParseGridEntry(Span<byte> data, int entryoffs, int x, int y) {
       try {
-        if (entryoffs <= 0 || entryoffs > data.Length) {
+        if (entryoffs <= 0 || entryoffs > data.Length)
           return;
-        }
-
         var entries = new List<int>();
 
         while (true) {
-          var c = BitConverter.ToInt32(data, entryoffs);
-          if (c == 0) {
+          var c = MemoryMarshal.Read<int>(data[entryoffs..]);
+          if (c == 0)
             break;
-          }
-
           entries.Add(c);
           entryoffs += 4;
         }
 
-        if (!entries.Any()) {
+        if (!entries.Any())
           return;
-        }
-
         var pos = (uint)entries[0];
         var xx = (int)((pos >> 14) & 0x1ff);
         var yy = (int)((pos >> 23) & 0x1ff);
@@ -269,14 +244,11 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
           if (i + 1 < entries.Count) {
             var visentryoffset = entries[i + 0];
             var geometryoffset = entries[i + 1];
-            if (visentryoffset > 0 &&
-                geometryoffset > 0 &&
-                visentryoffset < data.Length &&
-                geometryoffset < data.Length) {
+            if (visentryoffset > 0 && geometryoffset > 0 && visentryoffset < data.Length &&
+                geometryoffset < data.Length)
               ParseGridMesh(data, x, y, visentryoffset, geometryoffset);
-            } else {
+            else
               break;
-            }
           }
         }
       } catch (Exception ex) {
@@ -292,7 +264,7 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
     /// <param name="y">The y.</param>
     /// <param name="visentryoffset">The visentryoffset.</param>
     /// <param name="geometryoffset">The geometryoffset.</param>
-    private void ParseGridMesh(byte[] data,
+    private void ParseGridMesh(Span<byte> data,
                                int x,
                                int y,
                                int visentryoffset,
@@ -302,7 +274,7 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
         var m = new Matrix4x4();
         var m2 = new float[9];
         for (var i = 0; i < 16; i++) {
-          var currValue = BitConverter.ToSingle(data, visentryoffset + i * 4);
+          var currValue = MemoryMarshal.Read<Single>(data[(visentryoffset + i * 4)..]);
           m1[i] = currValue;
           switch (i) {
             case 0:
@@ -383,18 +355,16 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
           }
         }
 
-        var vertices = BitConverter.ToInt32(data, geometryoffset + 0x00);
-        var normals = BitConverter.ToInt32(data, geometryoffset + 0x04);
-        var tris = BitConverter.ToInt32(data, geometryoffset + 0x08);
-        int tricount = BitConverter.ToInt16(data, geometryoffset + 0x0c);
-        int flags = BitConverter.ToInt16(data, geometryoffset + 0x0e);
+        var vertices = MemoryMarshal.Read<int>(data[(geometryoffset + 0x00)..]);
+        var normals = MemoryMarshal.Read<int>(data[(geometryoffset + 0x04)..]);
+        var tris = MemoryMarshal.Read<int>(data[(geometryoffset + 0x08)..]);
+        int tricount = MemoryMarshal.Read<Int16>(data[(geometryoffset + 0x0c)..]);
+        int flags = MemoryMarshal.Read<Int16>(data[(geometryoffset + 0x0e)..]);
 
         var doesntBlockLineOfSight = (flags & 1) != 0;
         var numvert = (normals - vertices) / 12;
-        if (numvert <= 0) {
+        if (numvert <= 0)
           return;
-        }
-
         {
           var numnorm = (tris - normals) / 12;
 
@@ -402,14 +372,13 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
           var basenorm = _allNormals.Count;
           var basetri = _allTriangles.Count;
 
-          var determ = m2[0] * (m2[4] * m2[8] - m2[5] * m2[7]) -
-                       m2[1] * (m2[3] * m2[8] - m2[5] * m2[6]) +
+          var determ = m2[0] * (m2[4] * m2[8] - m2[5] * m2[7]) - m2[1] * (m2[3] * m2[8] - m2[5] * m2[6]) +
                        m2[2] * (m2[3] * m2[7] - m2[4] * m2[6]);
-          for (var i = 0; i < numvert; i++) {
+          for (var i = 0; i < numvert; i++)
             if (vertices > 0) {
-              var x1 = BitConverter.ToSingle(data, vertices + i * 3 + 0);
-              var y1 = BitConverter.ToSingle(data, vertices + i * 3 + 1);
-              var z1 = BitConverter.ToSingle(data, vertices + i * 3 + 2);
+              var x1 = MemoryMarshal.Read<Single>(data[(vertices + (i * 3 + 0) * 4)..]);
+              var y1 = MemoryMarshal.Read<Single>(data[(vertices + (i * 3 + 1) * 4)..]);
+              var z1 = MemoryMarshal.Read<Single>(data[(vertices + (i * 3 + 2) * 4)..]);
               var w1 = 1.0f;
 
               _allVertices.Add(new Vertex() {
@@ -418,52 +387,33 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
                 Z = m1[2] * x1 + m1[6] * y1 + m1[10] * z1 + m1[14] * w1
               });
             }
-          }
 
-          if (numnorm > 0) {
-            for (var i = 0; i < numnorm; i++) {
-              _allNormals.Add(new Normal {
-                Nx = BitConverter.ToSingle(data, normals + i * 3 + 0),
-                Ny = -BitConverter.ToSingle(data, normals + i * 3 + 1),
-                Nz = BitConverter.ToSingle(data, normals + i * 3 + 2)
+          if (numnorm > 0)
+            for (var i = 0; i < numnorm; i++)
+              _allNormals.Add(new Normal() {
+                Nx = MemoryMarshal.Read<Single>(data[(normals + (i * 3 + 0) * 4)..]),
+                Ny = -MemoryMarshal.Read<Single>(data[(normals + (i * 3 + 1) * 4)..]),
+                Nz = MemoryMarshal.Read<Single>(data[(normals + (i * 3 + 2) * 4)..])
               });
-            }
-          }
-
-          if (tricount <= 0) {
+          if (tricount <= 0)
             return;
-          }
-
           {
-            for (var i = 0; i < tricount; i++) {
-              if (determ > 0) {
-                _allTriangles.Add(new Triangle {
-                  Iv0 =
-                    basevert +
-                    BitConverter.ToUInt16(data, (tris + i * 4 + 2) & 0x3fff),
-                  Iv1 =
-                    basevert +
-                    BitConverter.ToUInt16(data, (tris + i * 4 + 1) & 0x3fff),
-                  Iv2 = basevert +
-                        BitConverter.ToUInt16(data, (tris + i * 4 + 0) & 0x3fff),
-                  In0 = basenorm +
-                        BitConverter.ToUInt16(data, (tris + i * 4 + 3) & 0x3fff)
-                });
-              } else {
+            for (var i = 0; i < tricount; i++)
+
+              if (determ > 0)
                 _allTriangles.Add(new Triangle() {
-                  Iv0 =
-                    basevert +
-                    BitConverter.ToUInt16(data, (tris + i * 4 + 0) & 0x3fff),
-                  Iv1 =
-                    basevert +
-                    BitConverter.ToUInt16(data, (tris + i * 4 + 1) & 0x3fff),
-                  Iv2 = basevert +
-                        BitConverter.ToUInt16(data, (tris + i * 4 + 2) & 0x3fff),
-                  In0 = basenorm +
-                        BitConverter.ToUInt16(data, (tris + i * 4 + 3) & 0x3fff)
+                  Iv0 = basevert + (MemoryMarshal.Read<UInt16>(data[(tris + (i * 4 + 2) * 2)..]) & 0x3fff),
+                  Iv1 = basevert + (MemoryMarshal.Read<UInt16>(data[(tris + (i * 4 + 1) * 2)..]) & 0x3fff),
+                  Iv2 = basevert + (MemoryMarshal.Read<UInt16>(data[(tris + (i * 4 + 0) * 2)..]) & 0x3fff),
+                  In0 = basenorm + (MemoryMarshal.Read<UInt16>(data[(tris + (i * 4 + 3) * 2)..]) & 0x3fff)
                 });
-              }
-            }
+              else
+                _allTriangles.Add(new Triangle() {
+                  Iv0 = basevert + (MemoryMarshal.Read<UInt16>(data[(tris + (i * 4 + 0) * 2)..]) & 0x3fff),
+                  Iv1 = basevert + (MemoryMarshal.Read<UInt16>(data[(tris + (i * 4 + 1) * 2)..]) & 0x3fff),
+                  Iv2 = basevert + (MemoryMarshal.Read<UInt16>(data[(tris + (i * 4 + 2) * 2)..]) & 0x3fff),
+                  In0 = basenorm + (MemoryMarshal.Read<UInt16>(data[(tris + (i * 4 + 3) * 2)..]) & 0x3fff)
+                });
           }
         }
       } catch (Exception ex) {
@@ -477,18 +427,21 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
     /// <param name="data">The data.</param>
     /// <param name="pos">The position.</param>
     /// <returns>System.Int32.</returns>
-    private int ParseMesh(byte[] data, int pos) {
+    private int ParseMesh(Span<byte> data, int pos) {
       try {
-        if (pos < data.Length && pos > 0) {
-          var verticesOffset = BitConverter.ToInt32(data, pos + 0x00);
-          var normalsOffset = BitConverter.ToInt32(data, pos + 0x04);
-          var triangles = BitConverter.ToInt32(data, pos + 0x08);
-          var triangleCount = BitConverter.ToInt32(data, pos + 0x0c);
-          var flags = BitConverter.ToInt16(data, pos + 0x0e);
-          return triangles + triangleCount * sizeof(UInt16) * 4;
-        } else {
-          return 0;
-        }
+                if (pos < data.Length && pos > 0)
+                {
+                    var verticesOffset = MemoryMarshal.Read<int>(data[(pos + 0x00)..]);
+                    var normalsOffset = MemoryMarshal.Read<int>(data[(pos + 0x04)..]);
+                    var triangles = MemoryMarshal.Read<int>(data[(pos + 0x08)..]);
+                    var triangleCount = MemoryMarshal.Read<int>(data[(pos + 0x0c)..]);
+                    var flags = MemoryMarshal.Read<Int16>(data[(pos + 0x0e)..]);
+                    return triangles + triangleCount * sizeof(UInt16) * 4;
+                }
+                else
+                {
+                    return 0;
+                }
       } catch (Exception ex) {
         logger.Log($"{ex}");
         return 0;
@@ -501,27 +454,24 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
     /// <param name="data">The data.</param>
     /// <param name="pos">The position.</param>
     /// <returns>Bbt.</returns>
-    private Bbt ParseQuadTree(byte[] data, int pos) {
+    private Bbt ParseQuadTree(Span<byte> data, int pos) {
       try {
         var bb = new float[8 * 3];
         var children = new int[4];
 
-        for (var i = 0; i < 8 * 3; i++) {
-          bb[i] = BitConverter.ToSingle(data, pos + i * 4);
-        }
-
-        var vislistoffset = BitConverter.ToInt32(data, pos + 8 * 3 * 4);
-        var vislistcount = BitConverter.ToInt32(data, pos + 8 * 3 * 4 + 4);
-        for (var i = 0; i < 4; i++) {
-          children[i] = BitConverter.ToInt32(data, pos + 8 * 3 * 4 + 4 + 4 + i * 4);
-        }
+        for (var i = 0; i < 8 * 3; i++)
+          bb[i] = MemoryMarshal.Read<Single>(data[(pos + i * 4)..]);
+        var vislistoffset = MemoryMarshal.Read<int>(data[(pos + 8 * 3 * 4)..]);
+        var vislistcount = MemoryMarshal.Read<int>(data[(pos + 8 * 3 * 4 + 4)..]);
+        for (var i = 0; i < 4; i++)
+          children[i] = MemoryMarshal.Read<int>(data[(pos + 8 * 3 * 4 + 4 + 4 + i * 4)..]);
 
         var b = new Bbt(bb);
         var visset = new HashSet<uint>();
 
         if (vislistcount > 0) {
           for (var i = 0; i < vislistcount; i++) {
-            var node = BitConverter.ToInt32(data, vislistoffset + i * 4);
+            var node = MemoryMarshal.Read<int>(data[(vislistoffset + i * 4)..]);
             b.Matchids.Add(node);
 
             var mapid = _vismapid[node];
@@ -530,17 +480,15 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
             }
           }
 
-          foreach (var mapid in visset) {
-            b.Matches.Add(mapid);
-          }
-        }
+          foreach (var mapid in visset)
 
-        for (var i = 0; i < 4; i++) {
+            b.Matches.Add(mapid);
+        }
+        for (var i = 0; i < 4; i++)
           if (children[i] != 0) {
             var child = ParseQuadTree(data, children[i]);
             b.Children.Add(child);
           }
-        }
 
         return b;
       } catch (Exception ex) {
