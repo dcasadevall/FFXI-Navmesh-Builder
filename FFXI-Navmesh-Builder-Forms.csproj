@@ -61,6 +61,7 @@
     <Compile Include="lib\dat\KeyTables.cs" />
     <Compile Include="lib\dat\Normal.cs" />
     <Compile Include="lib\dat\ParseZoneModelDat.cs" />
+    <Compile Include="lib\dat\ParseZoneModelDatFactory.cs" />
     <Compile Include="lib\dat\RomPath.cs" />
     <Compile Include="lib\dat\subRegion.cs" />
     <Compile Include="lib\dat\Triangle.cs" />

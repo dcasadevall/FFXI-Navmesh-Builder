@@ -3,7 +3,7 @@
 // Author           : Xenonsmurf
 // Created          : 04-29-2021
 //
-// Last Modified By : dcasadevallpino
+// Last Modified By : dcasadevall
 // Last Modified On : 07-10-2021
 // Original: https://github.com/LandSandBoat/FFXI-NavMesh-Builder-/blob/master/src/FFXI%20Navmesh%20Builder/Common/dat/ParseZoneModelDat.cs
 // ***********************************************************************
@@ -40,8 +40,11 @@ namespace Ffxi_Navmesh_Builder.Common.dat {
                              string zname,
                              string ffxIpath,
                              RomPath romPath,
+                             // Per model dat. Contains normals triangles vertizes
                              Mzb mzb,
+                             // Static
                              Mmb mmb,
+                             // Per zone. Contains subregions
                              Rid rid,
                              bool dumpSRinfo) {
       this.logger = logger;
@@ -152,10 +155,10 @@ namespace Ffxi_Navmesh_Builder.Common.dat {
             }
             
             Chunks.Add(new DatChunk {
-              Name = name,
-              Data = block,
-              Type = type,
-              Size = size
+              name = name,
+              data = block,
+              type = type,
+              size = size
             });
           }
         }

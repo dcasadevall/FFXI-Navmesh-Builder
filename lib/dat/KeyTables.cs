@@ -3,8 +3,9 @@
 // Author           : Xenonsmurf
 // Created          : 04-29-2021
 //
-// Last Modified By : Xenonsmurf
-// Last Modified On : 04-26-2021
+// Last Modified By : dcasadevall
+// Last Modified On : 07-10-2021
+// Original: https://github.com/LandSandBoat/FFXI-NavMesh-Builder-/blob/master/src/FFXI%20Navmesh%20Builder/Common/dat/KeyTables.cs
 // ***********************************************************************
 // <copyright file="KeyTables.cs" company="Xenonsmurf">
 //     Copyright © Xenonsmurf 2021
@@ -24,7 +25,7 @@ namespace Ffxi_Navmesh_Builder.Common.dat
         /// Gets the key table.
         /// </summary>
         /// <value>The key table.</value>
-        public static ReadOnlySpan<byte> KeyTable => new byte[]
+        public static byte[] KeyTable => new byte[]
 {
             0xE2, 0xE5, 0x06, 0xA9, 0xED, 0x26, 0xF4, 0x42,
             0x15, 0xF4, 0x81, 0x7F, 0xDE, 0x9A, 0xDE, 0xD0,
@@ -64,7 +65,7 @@ namespace Ffxi_Navmesh_Builder.Common.dat
         /// Gets the key table2.
         /// </summary>
         /// <value>The key table2.</value>
-        public static ReadOnlySpan<byte> KeyTable2 => new byte[]
+        public static byte[] KeyTable2 => new byte[]
          {
             0xB8, 0xC5, 0xF7, 0x84, 0xE4, 0x5A, 0x23, 0x7B,
             0xC8, 0x90, 0x1D, 0xF6, 0x5D, 0x09, 0x51, 0xC1,

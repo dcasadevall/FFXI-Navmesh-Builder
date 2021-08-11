@@ -3,8 +3,9 @@
 // Author           : Xenonsmurf
 // Created          : 04-29-2021
 //
-// Last Modified By : Xenonsmurf
-// Last Modified On : 04-26-2021
+// Last Modified By : dcasadevall
+// Last Modified On : 07-10-2021
+// Original: https://github.com/LandSandBoat/FFXI-NavMesh-Builder-/blob/master/src/FFXI%20Navmesh%20Builder/Common/dat/datChunk.cs
 // ***********************************************************************
 // <copyright file="datChunk.cs" company="Xenonsmurf">
 //     Copyright © Xenonsmurf 2021
@@ -18,27 +19,29 @@ namespace Ffxi_Navmesh_Builder.Common.dat
     /// <summary>
     /// Class DatChunk.
     /// </summary>
-    public class DatChunk
-    {
+    public class DatChunk {
         /// <summary>
         /// Gets or sets the data.
         /// </summary>
         /// <value>The data.</value>
-        public byte[] Data { get; init; }
+        public byte[] data = new byte[0];
+        
         /// <summary>
         /// Gets or sets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name { get; init; }
+        public string name = "";
+        
         /// <summary>
         /// Gets or sets the size.
         /// </summary>
         /// <value>The size.</value>
-        public uint Size { get; init; }
+        public uint size = 0;
+        
         /// <summary>
         /// Gets or sets the type.
         /// </summary>
         /// <value>The type.</value>
-        public ResourceType Type { get; init; }
+        public ResourceType type = ResourceType.Terminate;
     }
 }

@@ -3,7 +3,7 @@
 // Author           : Xenonsmurf
 // Created          : 04-29-2021
 //
-// Last Modified By : dcasadevallpino
+// Last Modified By : dcasadevall
 // Last Modified On : 07-10-2021
 // Original: https://github.com/LandSandBoat/FFXI-NavMesh-Builder-/blob/master/src/FFXI%20Navmesh%20Builder/Common/dat/Types/MZB.cs
 // ***********************************************************************

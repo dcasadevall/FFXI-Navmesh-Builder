@@ -1,63 +1,107 @@
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using FFXI_Navmesh_Builder_Forms.lib.dat;
+using FFXI_Navmesh_Builder_Forms.Logging;
+using FFXI_Navmesh_Builder.Common;
+using Ffxi_Navmesh_Builder.Common.dat;
 
 namespace FFXI_Navmesh_Builder_Forms.Generators {
   public class LandSandBoatObjFileGenerator : IObjFileGenerator {
-    public Task GenerateObjFiles() {
-      throw new System.NotImplementedException();
+    private readonly dat dat;
+    private readonly string ffxiPath;
+    private readonly ParseZoneModelDatFactory zoneDatFactory;
+    private readonly ILogger logger;
+    private readonly bool saveEntityInfo;
+    private readonly bool saveSubRegionInfo;
+    private readonly bool useTopazZoneNames;
+    private readonly bool useIdNames;
+
+    public LandSandBoatObjFileGenerator(dat dat,
+                                        string ffxiPath,
+                                        ParseZoneModelDatFactory zoneDatFactory,
+                                        ILogger logger,
+                                        bool saveEntityInfo = true,
+                                        bool saveSubRegionInfo = true,
+                                        bool useTopazZoneNames = true,
+                                        bool useIdNames = false) {
+      this.dat = dat;
+      this.ffxiPath = ffxiPath;
+      this.zoneDatFactory = zoneDatFactory;
+      this.logger = logger;
+      this.saveEntityInfo = saveEntityInfo;
+      this.saveSubRegionInfo = saveSubRegionInfo;
+      this.useTopazZoneNames = useTopazZoneNames;
+      this.useIdNames = useIdNames;
     }
-    
-    
+
+    public Task GenerateObjFiles() {
+      throw new NotImplementedException();
+    }
+
+
     /// <summary>
     /// Dumps the zone dat.
     /// </summary>
     /// <param name="zoneId">The zone identifier.</param>
     /// <param name="zoneName">Name of the zone.</param>
     /// <param name="datPath">The dat path.</param>
-    private async Task DumpZoneDat(int zoneId, string zoneName, string datPath) {
-      async Task Function() {
+    private async Task<ParseZoneModelDat> DumpZoneDat(int zoneId,
+                                                      string zoneName,
+                                                      string datPath,
+                                                      CancellationToken cancellationToken) {
+      async Task<ParseZoneModelDat> Function() {
         try {
-          if (_saveEntityinfo) {
-            if (Dat != null) {
+          if (saveEntityInfo) {
+            if (dat != null) {
               if (zoneId < 1000 || zoneId > 1299) {
                 var fileId = zoneId < 256 ? zoneId + 6720 : zoneId + 86235;
-                Dat.ParseDat(fileId);
+                dat.ParseDat(fileId);
               } else {
                 var fileId = zoneId + 66911;
-                Dat.ParseDat(fileId);
+                dat.ParseDat(fileId);
               }
             }
 
-            if (Dat != null)
-              Dat.Entity.DumpToXml(zoneId);
-          }
-          var stopWatch = new Stopwatch();
-          stopWatch.Start();
-          ZoneDat = new ParseZoneModelDat(Log, this, zoneId, datPath, FFxiInstallPath, _dumpSubregionInfoToXml);
-          var zoneDatPath = $@"{FFxiInstallPath}{datPath}";
-          Log.AddDebugText(RtbDebug, $@"Building an OBJ file using collision data for:  {zoneName} ID= {zoneId.ToString()}");
-          if (ZoneDat.LoadDat(zoneDatPath)) {
-            foreach (var sr in ZoneDat.Rid.SubRegions
-                .Where(sr =>
-                    sr.RomPath != FFxiInstallPath && sr.FileId != 0 && sr.RomPath != zoneDatPath &&
-                    sr.RomPath != string.Empty).Where(sr => ZoneDat.LoadDat(sr.RomPath)))
-              ;
+            dat?.Entity.DumpToXml(zoneId);
           }
 
-          await Task.Delay(100);
-          if (_saveSubRegioninfo) {
-            ZoneDat.Rid.DumpToXml(zoneId);
+          var stopWatch = new Stopwatch();
+          stopWatch.Start();
+          var zoneDatPath = $@"{ffxiPath}{datPath}";
+
+          logger.Log($@"Building an OBJ file using collision data for:  {zoneName} ID= {zoneId.ToString()}");
+          var zoneDat = zoneDatFactory.Create(zoneId, zoneName);
+          if (zoneDat.LoadDat(zoneDatPath)) {
+            foreach (var subRegion in zoneDat.Rid.SubRegions.Where(sr => sr.RomPath != ffxiPath &&
+              sr.FileId != 0 &&
+              sr.RomPath != zoneDatPath &&
+              sr.RomPath != string.Empty)) {
+              zoneDat.LoadDat(subRegion.RomPath);
+            }
           }
+
+          await Task.Delay(100, cancellationToken);
+          if (saveSubRegionInfo) {
+            zoneDat.Rid.DumpToXml(zoneId);
+          }
+
           stopWatch.Stop();
           var ts = stopWatch.Elapsed;
-          var elapsedTime = $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
-          Log.AddDebugText(RtbDebug, $@"Finished dumping {zoneName} collision data to {zoneName}.obj, Time taken {elapsedTime}");
+          var elapsedTime =
+            $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
+          logger.Log($@"Finished dumping {zoneName} collision data to {zoneName}.obj, Time taken {elapsedTime}");
+
+          return zoneDat;
         } catch (Exception ex) {
-          Log.LogFile(ex.ToString(), nameof(HomeView));
-          Log.AddDebugText(RtbDebug, $@"{ex} > {nameof(HomeView)}");
+          logger.Log($"{ex}");
+          return null;
         }
       }
 
-      await Task.Run(Function, _cancellationToken.Token);
+      return await Task.Run(Function, cancellationToken);
     }
 
 
@@ -66,60 +110,47 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
     /// </summary>
     /// <param name="run">if set to <c>true</c> [run].</param>
     private async Task DumpAllObjFilesAsync(bool run) {
-      _cancellationToken = new CancellationTokenSource();
+      var cancellationTokenSource = new CancellationTokenSource();
       switch (run) {
         case true: {
-            if (Dat.Dms._zones.Count > 0) {
-              var stopWatch = new Stopwatch();
-              SubTp.IsEnabled = false;
-              EntTp.IsEnabled = false;
-              stopWatch.Start();
-              foreach (var zone in Dat.Dms._zones) {
-                await DumpZoneDat(zone.Id, zone.Name, zone.Path);
+          if (dat.Dms._zones.Count > 0) {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+            foreach (var zone in dat.Dms._zones) {
+              var zoneDat =
+                await DumpZoneDat(zone.Id, zone.Name, zone.Path, cancellationTokenSource.Token);
 
-                if ((bool)TPNamesCB.IsChecked) {
-                  foreach (KeyValuePair<int, string> tz in Tnames.zoneNames) {
-                    if (tz.Key == zone.Id) {
-                      ZoneDat.Mzb.WriteObj(tz.Value);
-                    }
-                  }
-                } else
-                  switch (IDonlyCb.IsChecked) {
-                    case true when ZoneDat.Mzb.WriteObj(zone.Id.ToString()):
-                    case false when ZoneDat.Mzb.WriteObj(zone.Name):
-                      continue;
-                  }
+              if (useTopazZoneNames) {
+                var zoneName = TopazNames.zoneNames.FirstOrDefault(x => x.Key == zone.Id).Value;
+                if (zoneName != null) {
+                  zoneDat.Mzb.WriteObj(zoneName);
+                } else {
+                  logger.Log($"Topaz Name not found for zone: {zone.Name}");
+                }
+              } else {
+                switch (useIdNames) {
+                  case true when zoneDat.Mzb.WriteObj(zone.Id.ToString()):
+                  case false when zoneDat.Mzb.WriteObj(zone.Name):
+                    continue;
+                }
               }
-              stopWatch.Stop();
-              var ts = stopWatch.Elapsed;
-              var elapsedTime = $"{ts.Hours.ToString("00")}:{ts.Minutes.ToString("00")}:{ts.Seconds.ToString("00")}.{ts.Milliseconds / 10:00}";
-              Log.AddDebugText(RtbDebug, $@"Time taken to dump all collision obj files {elapsedTime}");
-              BuildAllObJbtn.Content = @"Build obj files for all zones.";
-              _dumpingMapDats = false;
-              SubTp.IsEnabled = true;
-              EntTp.IsEnabled = true;
-              SubRegion.IsEnabled = true;
-              Entity.IsEnabled = true;
-            } else
-              Log.AddDebugText(RtbDebug, "Please click Load Zones, before you try and build obj files!.");
-            BuildAllObJbtn.Content = @"Build obj files for all zones.";
-            _dumpingMapDats = false;
-            SubTp.IsEnabled = true;
-            EntTp.IsEnabled = true;
-            SubRegion.IsEnabled = true;
-            Entity.IsEnabled = true;
-            break;
+            }
+
+            stopWatch.Stop();
+            var ts = stopWatch.Elapsed;
+            var elapsedTime =
+              $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
+            logger.Log($@"Time taken to dump all collision obj files {elapsedTime}");
+          } else {
+            logger.Log("Please click Load Zones, before you try and build obj files!.");
           }
+
+          break;
+        }
         case false: {
-            _cancellationToken?.Cancel();
-            BuildAllObJbtn.Content = @"Build obj files for all zones.";
-            _dumpingMapDats = false;
-            SubTp.IsEnabled = true;
-            EntTp.IsEnabled = true;
-            SubRegion.IsEnabled = true;
-            Entity.IsEnabled = true;
-            break;
-          }
+          cancellationTokenSource.Cancel();
+          break;
+        }
       }
     }
   }
