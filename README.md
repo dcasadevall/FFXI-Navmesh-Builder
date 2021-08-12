@@ -13,7 +13,7 @@ This project is intended to be a simplification of user interface for generating
 
 * All file generation is separate from View management, and encapsulated under interfaces
 * Use DI to construct all objects, pushing dependencies up to the composition root
-* Change application type to Window Forms. This removes the need for additional WPF dependencies like 
+* Greatly simplified UI Layout so one can generate OBJ files / Meshes in batch
 
 ## TODO
 
