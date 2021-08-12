@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FFXI_Navmesh_Builder_Forms.Logging;
 using FFXI_Navmesh_Builder_Forms.Settings;
 using Ffxi_Navmesh_Builder.Common;
+using System.Runtime.InteropServices;
 
 namespace FFXI_Navmesh_Builder_Forms.Generators {
   /// <summary>
@@ -79,16 +80,21 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
     /// </summary>
     /// <param name="file">The file.</param>
     private async Task BuildNavMesh(string file, CancellationToken token) {
-      void Function() {
+      async void Function() {
         try {
           var stopWatch = new Stopwatch();
           stopWatch.Start();
 
-          ffxinav = new Ffxinav();
-          ApplySettings();
-          if (!ffxinav.Dump_NavMesh(file)) {
-            logger.Log($@"Failed to dump navmesh {file}"); //: " + ffxinav.GetErrorMessage());
-            return;
+          try {
+            if (!ffxinav.Dump_NavMesh(file)) {
+              logger.Log($@"Failed to dump navmesh {file}"); //: " + ffxinav.GetErrorMessage());
+              return;
+            }
+          } catch (System.Runtime.InteropServices.SEHException) {
+            ffxinav.Dispose();
+            ffxinav = new Ffxinav();
+            ApplySettings();
+            await BuildNavMesh(file, token);
           }
 
           stopWatch.Stop();
