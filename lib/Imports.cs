@@ -82,13 +82,6 @@ namespace Ffxi_Navmesh_Builder.Common {
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool ReleaseItems(IntPtr pFfxiNavClassObject, ItemsSafeHandle itemsHandle);
 
-    [DllImport("FFXINAV.dll",
-               EntryPoint = "GetLogMessage",
-               CharSet = CharSet.Auto,
-               CallingConvention = CallingConvention.Cdecl,
-               SetLastError = true)]
-    public static extern IntPtr GetLogMessage(IntPtr pFfxiNavClassObject);
-
     /// <summary>
     /// Converts to single.
     /// </summary>
@@ -195,13 +188,8 @@ namespace Ffxi_Navmesh_Builder.Common {
         return false;
       }
 
+      Unload();
       return DumpNavMesh(_mPNativeObject, file);
-    }
-
-    public string GetErrorMessage() {
-      // DOES NOT WORK.
-      // return GetLogMessage(_mPNativeObject, out var unmanagedErrorPtr);
-      return Marshal.PtrToStringAnsi(GetLogMessage(_mPNativeObject));
     }
 
     /// <summary>

@@ -10,15 +10,15 @@ using Ffxi_Navmesh_Builder.Common;
 namespace FFXI_Navmesh_Builder_Forms.Generators {
   /// <summary>
   /// Implementation of <see cref="INavMeshGenerator"/> that uses
-  /// https://github.com/LandSandBoat/FFXI-NavMesh-Builder-'s proxy classes to generate
+  /// https://github.com/xenonsmurf/Ffxi_Navmesh_Builder's proxy classes to generate
   /// navmeshes
   /// </summary>
-  public class LandSandBoatNavMeshGenerator : INavMeshGenerator {
+  public class XenonsmurfNavMeshGenerator : INavMeshGenerator {
     private readonly ILogger logger;
-    private readonly Ffxinav ffxinav;
+    private Ffxinav ffxinav;
     private readonly NavMeshGenerationSettings settings;
 
-    public LandSandBoatNavMeshGenerator(ILogger logger,
+    public XenonsmurfNavMeshGenerator(ILogger logger,
                                         Ffxinav ffxinav,
                                         NavMeshGenerationSettings settings) {
       this.logger = logger;
@@ -84,6 +84,8 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
           var stopWatch = new Stopwatch();
           stopWatch.Start();
 
+          ffxinav = new Ffxinav();
+          ApplySettings();
           if (!ffxinav.Dump_NavMesh(file)) {
             logger.Log($@"Failed to dump navmesh {file}"); //: " + ffxinav.GetErrorMessage());
             return;

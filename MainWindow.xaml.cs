@@ -14,11 +14,11 @@ namespace FFXI_NavMesh_Builder {
   /// Interaction logic for MainWindow.xaml
   /// </summary>
   public partial class MainWindow : Window {
-    private LandSandBoatNavMeshGenerator navMeshGenerator;
-    private LandSandBoatObjFileGenerator objFileGenerator;
+    private XenonsmurfNavMeshGenerator navMeshGenerator;
+    private XenonsmurfObjFileGenerator objFileGenerator;
     private readonly ILogger logger;
 
-    public MainWindow(LandSandBoatNavMeshGenerator navMeshGenerator, LandSandBoatObjFileGenerator objFileGenerator, ILogger logger) {
+    public MainWindow(XenonsmurfNavMeshGenerator navMeshGenerator, XenonsmurfObjFileGenerator objFileGenerator, ILogger logger) {
       this.navMeshGenerator = navMeshGenerator;
       this.objFileGenerator = objFileGenerator;
       this.logger = logger;

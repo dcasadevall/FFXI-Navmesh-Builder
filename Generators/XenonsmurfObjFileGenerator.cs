@@ -9,7 +9,7 @@ using FFXI_Navmesh_Builder.Common;
 using Ffxi_Navmesh_Builder.Common.dat;
 
 namespace FFXI_Navmesh_Builder_Forms.Generators {
-  public class LandSandBoatObjFileGenerator : IObjFileGenerator {
+  public class XenonsmurfObjFileGenerator : IObjFileGenerator {
     private readonly dat dat;
     private readonly string ffxiPath;
     private readonly ParseZoneModelDatFactory zoneDatFactory;
@@ -19,7 +19,7 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
     private readonly bool useTopazZoneNames;
     private readonly bool useIdNames;
 
-    public LandSandBoatObjFileGenerator(dat dat,
+    public XenonsmurfObjFileGenerator(dat dat,
                                         string ffxiPath,
                                         ParseZoneModelDatFactory zoneDatFactory,
                                         ILogger logger,

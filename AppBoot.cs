@@ -30,8 +30,8 @@ namespace FFXI_NavMesh_Builder {
 
       // Generators
       var navMeshSettings = new NavMeshGenerationSettings();
-      var navMeshGenerator = new LandSandBoatNavMeshGenerator(logger, ffxiNav, navMeshSettings);
-      var objFileGenerator = new LandSandBoatObjFileGenerator(dat, ffxiPath, zoneDatFactory, logger);
+      var navMeshGenerator = new XenonsmurfNavMeshGenerator(logger, ffxiNav, navMeshSettings);
+      var objFileGenerator = new XenonsmurfObjFileGenerator(dat, ffxiPath, zoneDatFactory, logger);
       MainWindow mainWindow = new MainWindow(navMeshGenerator, objFileGenerator, logger);
       mainWindow.ShowDialog();
     }

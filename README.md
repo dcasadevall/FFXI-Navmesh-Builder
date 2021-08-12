@@ -1,5 +1,5 @@
 # FFXI Navmesh Builder
-Using source from https://github.com/LandSandBoat/FFXI-NavMesh-Builder-, this application should allow users to generate nav meshes from OBJ files
+Using source from https://github.com/xenonsmurf/Ffxi_Navmesh_Builder, this application should allow users to generate nav meshes from OBJ files
 
 This project is intended to be a simplification of user interface for generating OBJ files / NavMeshes with default settings that are recommended for most navmeshes.
 
