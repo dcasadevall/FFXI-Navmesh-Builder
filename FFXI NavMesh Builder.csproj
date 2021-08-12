@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <RootNamespace>FFXI_NavMesh_Builder</RootNamespace>
+    <UseWPF>true</UseWPF>
+    <StartupObject></StartupObject>
+     <StartupObject>FFXI_NavMesh_Builder.AppBoot</StartupObject>
+     <Platforms>AnyCPU;x86;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="FFXINAV.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

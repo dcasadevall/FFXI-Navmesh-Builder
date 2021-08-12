@@ -5,7 +5,7 @@
 //
 // Last Modified By : dcasadevall
 // Last Modified On : 07-10-2021
-// Original: https://github.com/LandSandBoat/FFXI-NavMesh-Builder-/blob/master/src/FFXI%20Navmesh%20Builder/Common/dat/Types/RID.cs
+// Original: https://github.com/xenonsmurf/Ffxi_Navmesh_Builder/blob/master/src/FFXI%20Navmesh%20Builder/Common/dat/Types/RID.cs
 // ***********************************************************************
 // <copyright file="RID.cs" company="Xenonsmurf">
 //     Copyright © Xenonsmurf 2021
@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Serialization;
 using FFXI_Navmesh_Builder_Forms.Logging;
@@ -97,23 +98,23 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
     /// </summary>
     /// <param name="block">The block.</param>
     /// <param name="id">The identifier.</param>
-    public void ParseRid(byte[] block, int id) {
+    public void ParseRid(Span<byte> block, int id) {
       try {
-        var count = BitConverter.ToInt32(block, 0x30);
+        var count = MemoryMarshal.Read<int>(block[0x30..]);
         for (var i = 0; i < count; i++) {
           var temp = new SubRegion {
-            X = BitConverter.ToSingle(block, 0x40 + i * 0x40 + 0x00),
-            Y = BitConverter.ToSingle(block, 0x40 + i * 0x40 + 0x04),
-            Z = BitConverter.ToSingle(block, 0x40 + i * 0x40 + 0x08),
-            RotationX = BitConverter.ToSingle(block, 0x40 + i * 0x40 + 0x0c),
-            RotationY = BitConverter.ToSingle(block, 0x40 + i * 0x40 + 0x10),
-            RotationZ = BitConverter.ToSingle(block, 0x40 + i * 0x40 + 0x14),
-            ScaleX = BitConverter.ToSingle(block, 0x40 + i * 0x40 + 0x18),
-            ScaleY = BitConverter.ToSingle(block, 0x40 + i * 0x40 + 0x1c),
-            ScaleZ = BitConverter.ToSingle(block, 0x40 + i * 0x40 + 0x20)
+            X = MemoryMarshal.Read<Single>(block[(0x40 + i * 0x40 + 0x00)..]),
+            Y = MemoryMarshal.Read<Single>(block[(0x40 + i * 0x40 + 0x04)..]),
+            Z = MemoryMarshal.Read<Single>(block[(0x40 + i * 0x40 + 0x08)..]),
+            RotationX = MemoryMarshal.Read<Single>(block[(0x40 + i * 0x40 + 0x0c)..]),
+            RotationY = MemoryMarshal.Read<Single>(block[(0x40 + i * 0x40 + 0x10)..]),
+            RotationZ = MemoryMarshal.Read<Single>(block[(0x40 + i * 0x40 + 0x14)..]),
+            ScaleX = MemoryMarshal.Read<Single>(block[(0x40 + i * 0x40 + 0x18)..]),
+            ScaleY = MemoryMarshal.Read<Single>(block[(0x40 + i * 0x40 + 0x1c)..]),
+            ScaleZ = MemoryMarshal.Read<Single>(block[(0x40 + i * 0x40 + 0x20)..])
           };
           var namebytes = new byte[8];
-          Buffer.BlockCopy(block, 0x40 + i * 0x40 + 0x24, namebytes, 0, 8);
+          Buffer.BlockCopy(block.ToArray(), 0x40 + i * 0x40 + 0x24, namebytes, 0, 8);
           var len = 0;
           while (len < namebytes.Length && namebytes[len] != 0)
             len++;
@@ -149,10 +150,9 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
               case "m":
 
                 temp.Type = "Model";
-                temp.FileId = BitConverter.ToInt32(block, 0x40 + i * 0x40 + 0x2c);
+                temp.FileId = MemoryMarshal.Read<int>(block[(0x40 + i * 0x40 + 0x2c)..]);
                 var fileId = temp.FileId + 100;
-                temp.RomPath =
-                  ($@"{InstallPath}{RomPath.GetRomPath(fileId, RomPath.TableDirectory)}");
+                temp.RomPath = ($@"{InstallPath}{RomPath.GetRomPath(fileId, RomPath.TableDirectory)}");
                 SubRegionModel++;
                 break;
 
@@ -161,8 +161,7 @@ namespace Ffxi_Navmesh_Builder.Common.dat.Types {
                 break;
             }
           }
-
-          temp.Unknown = BitConverter.ToInt32(block, 0x40 + i * 0x40 + 0x30);
+          temp.Unknown = MemoryMarshal.Read<int>(block[(0x40 + i * 0x40 + 0x30)..]);
           {
             var vx = temp.ScaleX / 2;
             var vy = temp.ScaleY / 2;

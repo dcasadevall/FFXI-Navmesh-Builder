@@ -7,17 +7,12 @@ using System.Threading.Tasks;
 namespace FFXI_Navmesh_Builder_Forms.Settings {
   public class NavMeshGenerationSettings {
     // Cell and Tiles
-    // public int tileSize = 256;
     public int tileSize = 64;
-    // public float cellSize = 0.4f;
     public float cellSize = 0.15f;
-    // public float cellHeight = 0.2f;
     public float cellHeight = 0.075f;
     // Agent
     public float agentHeight = 1.8f;
-    // public float agentRadius = 0.6f;
     public float agentRadius = 0.7f;
-    // public float maxClimb = 0.7f;
     public float maxClimb = 0.5f;
     public int maxSlope = 46;
     // Misc
@@ -28,6 +23,6 @@ namespace FFXI_Navmesh_Builder_Forms.Settings {
     public int vertsPerPoly = 6;
     public int detailSampleDistance = 6;
     public int detailSampleMaxError = 1;
-    public bool dllDebugMode = true;
+    public bool dllDebugMode = false;
   }
 }

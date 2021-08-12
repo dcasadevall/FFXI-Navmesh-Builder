@@ -5,7 +5,7 @@
 //
 // Last Modified By : dcasadevall
 // Last Modified On : 07-10-2021
-// Original: https://github.com/LandSandBoat/FFXI-NavMesh-Builder-/blob/master/src/FFXI%20Navmesh%20Builder/Common/dat/Types/MMB.cs
+// Original: https://github.com/xenonsmurf/Ffxi_Navmesh_Builder/blob/master/src/FFXI%20Navmesh%20Builder/Common/dat/Types/MMB.cs
 // ***********************************************************************
 // <copyright file="MMB.cs" company="Xenonsmurf">
 //     Copyright © Xenonsmurf 2021

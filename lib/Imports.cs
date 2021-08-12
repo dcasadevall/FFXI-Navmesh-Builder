@@ -183,11 +183,13 @@ namespace Ffxi_Navmesh_Builder.Common {
     /// and build a mesh.
     /// </summary>
     /// <param name="file">The file.</param>
-    public void Dump_NavMesh(string file) {
-      if (DumpNavMesh(_mPNativeObject, file)) {
-        Unload();
-        UnloadMeshBuilder();
+    public bool Dump_NavMesh(string file) {
+      if (!UnloadMeshBuilder()) {
+        return false;
       }
+
+      Unload();
+      return DumpNavMesh(_mPNativeObject, file);
     }
 
     /// <summary>

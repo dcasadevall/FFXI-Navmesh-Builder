@@ -5,7 +5,7 @@
 //
 // Last Modified By : dcasadevall
 // Last Modified On : 07-10-2021
-// Original: https://github.com/LandSandBoat/FFXI-NavMesh-Builder-/blob/master/src/FFXI%20Navmesh%20Builder/Common/dat/ParseZoneModelDat.cs
+// Original: https://github.com/xenonsmurf/Ffxi_Navmesh_Builder/blob/master/src/FFXI%20Navmesh%20Builder/Common/dat/ParseZoneModelDat.cs
 // ***********************************************************************
 // <copyright file="ParseZoneModelDat.cs" company="Xenonsmurf">
 //     Copyright © Xenonsmurf 2021
@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using FFXI_Navmesh_Builder_Forms.Logging;
+using System.Runtime.InteropServices;
 
 namespace Ffxi_Navmesh_Builder.Common.dat {
   /// <summary>
@@ -126,43 +127,38 @@ namespace Ffxi_Navmesh_Builder.Common.dat {
     public bool LoadDat(string datPath) {
       try {
         Chunks.Clear();
-        // var data = File.ReadAllBytes(datPath).AsSpan();
-        using (var reader = new BinaryReader(File.Open(datPath, FileMode.Open))) {
-          while (reader.BaseStream.Position != reader.BaseStream.Length) {
-            var name = Encoding.UTF8.GetString(reader.ReadBytes(4));
-            var value = BitConverter.ToUInt32(reader.ReadBytes(12), 0);
-            var type = (ResourceType)(value & 0x7F);
-            var size = 16 * ((value >> 7) & 0x7FFFF) - 16;
-            var block = reader.ReadBytes((int)size);
-            
-            switch (type) {
-              //dont need mmb for collision mesh
-              case ResourceType.Mmb:
-                // Mmb.DecodeMmb(block);
-                break;
+        var data = File.ReadAllBytes(datPath).AsSpan();
+        var position = 0;
+        while (position < data.Length) {
+          var name = Encoding.UTF8.GetString(data.Slice(position, 4)).TrimEnd('\0');
+          position += 4;
+          var value = MemoryMarshal.Read<uint>(data[position..]);
+          var type = (ResourceType)(value & 0x7F);
+          var size = 16 * ((value >> 7) & 0x7FFFF) - 16;
+          position += 12;
+          var block = data.Slice(position, (int)size);
 
-              case ResourceType.Mzb:
-                //testing  code from ida
-                // Mzb.sub_46B7A80(block,1);
-                //testing  code from ida
-                Mzb.DecodeMzb(block);
-                Mzb.ParseMzb(block);
-                break;
+          switch (type) {
+            //dont need mmb for collision mesh
+            case ResourceType.Mmb:
+              // Mmb.DecodeMmb(block);
+              break;
 
-              case ResourceType.Rid:
-                Rid.ParseRid(block, ZoneId);
-                break;
-            }
-            
-            Chunks.Add(new DatChunk {
-              name = name,
-              data = block,
-              type = type,
-              size = size
-            });
+            case ResourceType.Mzb:
+              //testing  code from ida
+              // Mzb.sub_46B7A80(block,1);
+              //testing  code from ida
+              Mzb.DecodeMzb(block);
+              Mzb.ParseMzb(block);
+              break;
+
+            case ResourceType.Rid:
+              Rid.ParseRid(block, ZoneId);
+              break;
           }
+          Chunks.Add(new DatChunk { name = name, data = block.ToArray(), type = type, size = size });
+          position += block.Length;
         }
-
         return true;
       } catch (Exception ex) {
         logger.Log($"{ex}");
