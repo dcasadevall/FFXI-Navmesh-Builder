@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FFXI_Navmesh_Builder_Forms.Settings {
-  public class NavMeshGenerationSettings {
+namespace FFXI_NavMesh_Builder.Settings {
+  public class LandSandDefaultNavMeshGenerationSettings {
     // Cell and Tiles
-    public int tileSize = 64;
-    public float cellSize = 0.15f;
-    public float cellHeight = 0.075f;
+    public int tileSize = 256;
+    public float cellSize = 0.4f;
+    public float cellHeight = 0.2f;
     // Agent
     public float agentHeight = 1.8f;
-    public float agentRadius = 0.7f;
-    public float maxClimb = 0.5f;
+    public float agentRadius = 0.6f;
+    public float maxClimb = 0.7f;
     public int maxSlope = 46;
     // Misc
     public int regionMinSize = 8;
@@ -23,6 +23,6 @@ namespace FFXI_Navmesh_Builder_Forms.Settings {
     public int vertsPerPoly = 6;
     public int detailSampleDistance = 6;
     public int detailSampleMaxError = 1;
-    public bool dllDebugMode = false;
+    public bool dllDebugMode = true;
   }
 }

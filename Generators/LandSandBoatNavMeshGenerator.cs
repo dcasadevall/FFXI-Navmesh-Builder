@@ -68,7 +68,7 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
 
         logger.Log($@"Building NavMesh for {name} ...");
         var cancellationTokenSource = new CancellationTokenSource();
-        await BuildNavMesh(fullDumpFilePath, cancellationTokenSource.Token);
+        await BuildNavMesh(file, cancellationTokenSource.Token);
       }
 
       logger.Log($@"Done");
