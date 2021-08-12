@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <StartupObject></StartupObject>
      <StartupObject>FFXI_NavMesh_Builder.AppBoot</StartupObject>
-     <Platforms>AnyCPU;x86</Platforms>
+     <Platforms>AnyCPU;x86;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

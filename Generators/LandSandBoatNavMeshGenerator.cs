@@ -59,8 +59,9 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
 
       foreach (var file in Directory.EnumerateFiles(string.Format(path, "*.obj"))) {
         var fullPath = Path.GetFileName(file);
-        var name = fullPath.Substring(0, fullPath.LastIndexOf(".", StringComparison.Ordinal) + 1).Replace(" -", "-").Replace("- ", "-").Replace(" ", "_").Replace("'", "").Replace("#", "");
-        var fullDumpFilePath = dumpPath + "\\" + name + "nav";
+        // var name = fullPath.Substring(0, fullPath.LastIndexOf(".", StringComparison.Ordinal) + 1).Replace(" -", "-").Replace("- ", "-").Replace(" ", "_").Replace("'", "").Replace("#", "");
+        var name = fullPath.Substring(0, fullPath.LastIndexOf(".", StringComparison.Ordinal));
+        var fullDumpFilePath = dumpPath + "\\" + name + ".nav";
         if (File.Exists(fullDumpFilePath)) {
           continue;
         }
@@ -83,7 +84,11 @@ namespace FFXI_Navmesh_Builder_Forms.Generators {
           var stopWatch = new Stopwatch();
           stopWatch.Start();
 
-          ffxinav.Dump_NavMesh(file);
+          if (!ffxinav.Dump_NavMesh(file)) {
+            logger.Log($@"Failed to dump navmesh {file}"); //: " + ffxinav.GetErrorMessage());
+            return;
+          }
+
           stopWatch.Stop();
           var elapsed = stopWatch.Elapsed;
           var elapsedTime = $"{elapsed.Hours:00}:{elapsed.Minutes:00}:{elapsed.Seconds:00}.{elapsed.Milliseconds / 10:00}";
